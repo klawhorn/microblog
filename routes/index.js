@@ -12,7 +12,7 @@ router.get('/', function(request, response, next) {
     username = null;
   }
 
-  response.render('index', { title: 'Authorize Me!', username: username });
+  response.render('index', { title: 'Welcome to the tweetMachine!', username: username });
 });
 
 
@@ -46,7 +46,7 @@ router.post('/register', function(request, response) {
   } else {
     
     response.cookie('username', username);
-    database('users').insert(({'username': username, 'password': password}));
+    database('users').insert(({'username': username, 'password': password})).then();
       response.redirect('/');
     };
   }
@@ -68,7 +68,7 @@ router.post('/login', function(request, response) {
 
     if (records.length === 0) {
         response.render('index', {
-          title: 'Authorize Me!',
+          title: 'User not found!',
           user: null,
           error: "No such user"
         });
@@ -81,7 +81,7 @@ router.post('/login', function(request, response) {
       } else {
 
         response.render('index', {
-          title: 'Authorize Me!',
+          title: 'Nah, brah.',
           user: null,
           error: "Password incorrect"
         });
