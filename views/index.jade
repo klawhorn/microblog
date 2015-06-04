@@ -1,11 +1,17 @@
 extends layout
 
 block content
-  h1= title
+  div.header
+    h1= title
   if error
     h3= error
   if username
-    p You are currently logged in as #{ username }
+    h3 Welcome #{username}!
+    div.newTweet
+      form(method='post' action='/tweet')
+        label What's on your mind?       
+          input(id='tweetbody' type='text' name='tweetBody' placeholder='Your mouth sayeth...')
+          input(type='submit' value='Loudmouf' id='bigButton')
   else
     p You are not logged in. Would you like to be?
     div

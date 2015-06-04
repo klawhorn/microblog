@@ -58,6 +58,17 @@ router.post('/register', function(request, response) {
 });
 
 
+/*************************************************
+post for saving tweets
+**************************************************/
+router.post('/tweet', function(request, response){
+    var username = request.cookie.username;
+    var tweetBody = request.body.tweetBody;
+    var database = app.get('database');
+
+    database('tweets').insert(({'username': username, 'tweetBody': tweetBody})).then();
+})
+
 router.post('/login', function(request, response) {
 
   var username = request.body.username,
