@@ -62,12 +62,18 @@ router.post('/register', function(request, response) {
 post for saving tweets
 **************************************************/
 router.post('/tweet', function(request, response){
-    var username = request.cookie.username;
+    var userID = request.cookies.username;
     var tweetBody = request.body.tweetBody;
     var database = app.get('database');
+    var currentDate = new Date(); 
+    var dateTime = "Tweet time: " + currentDate.getDate() + "/" + (currentDate.getMonth()+1)  + "/" + currentDate.getFullYear() + " @ " + currentDate.getHours() + ":" + currentDate.getMinutes() + ":" + currentDate.getSeconds();
 
-    database('tweets').insert(({'username': username, 'tweetBody': tweetBody})).then();
-})
+    database('tweets').insert(({'username': userID, "tweetBody": tweetBody, "tweetTime": dateTime})).then();
+      response.redirect('/');
+});
+/*************************************************
+post for saving tweets
+**************************************************/
 
 router.post('/login', function(request, response) {
 

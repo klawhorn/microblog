@@ -4,7 +4,7 @@ exports.up = function(knex, Promise) {
     table.increments('id').primary();
     table.string('username');
     table.string('tweetBody');
-    table.timestamp('tweetTime', true);
+    table.string('tweetTime');
   });
 };
 
