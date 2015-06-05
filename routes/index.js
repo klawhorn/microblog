@@ -5,14 +5,21 @@ var app = require('../app')
 
 router.get('/', function(request, response, next) {
   var username;
+  var database = app.get('database');
 
   if (request.cookies.username) {
     username = request.cookies.username;
+    username = username.toUpperCase();
+    database.select().table("tweets").then(displayTweet);
+    function displayTweet(query){
+      var tweetTable = query.reverse();
+      response.render('index', { tweetTable: tweetTable, title: 'Welcome to the tweetMachine!', username: username });
+    }
+
   } else {
     username = null;
+    response.render('index', { title: 'Welcome to the tweetMachine!', username: username });
   }
-
-  response.render('index', { title: 'Welcome to the tweetMachine!', username: username });
 });
 
 
@@ -27,6 +34,7 @@ router.post('/register', function(request, response) {
   Function to check if the username already exists
   ========================*/
   function checkIfDuplicate (query) {
+
   if (query[0] !== undefined) {
   
     response.render('index', {
@@ -52,28 +60,36 @@ router.post('/register', function(request, response) {
   }
   
   database('users').select('username').where({'username': username}).then(checkIfDuplicate);
+
+});
    /*=======================
    =================================================================*/
 
-});
+
 
 
 /*************************************************
 post for saving tweets
 **************************************************/
 router.post('/tweet', function(request, response){
-    var userID = request.cookies.username;
+    var username = request.cookies.username;
     var tweetBody = request.body.tweetBody;
     var database = app.get('database');
     var currentDate = new Date(); 
     var dateTime = "Tweet time: " + currentDate.getDate() + "/" + (currentDate.getMonth()+1)  + "/" + currentDate.getFullYear() + " @ " + currentDate.getHours() + ":" + currentDate.getMinutes() + ":" + currentDate.getSeconds();
 
-    database('tweets').insert(({'username': userID, "tweetBody": tweetBody, "tweetTime": dateTime})).then();
-      response.redirect('/');
+    database('tweets').insert(({'username': username, "tweetBody": tweetBody, "tweetTime": dateTime})).then();
+
+      response.redirect('/');   
+      
 });
+ 
+
+  
 /*************************************************
-post for saving tweets
+
 **************************************************/
+
 
 router.post('/login', function(request, response) {
 

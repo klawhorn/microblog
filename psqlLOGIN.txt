@@ -1,0 +1,2 @@
+postgres -D /usr/local/var/postgres
+psql -d SERVERNAME
