@@ -1,8 +1,13 @@
 var express = require('express');
 var router = express.Router();
-var app = require('../app')
+var app = require('../app');
+var redis = require('redis');
+var client = redis.createClient();
 
 
+/***************************************************
+Index page 
+***************************************************/
 router.get('/', function(request, response, next) {
   var username;
   var database = app.get('database');
@@ -13,16 +18,18 @@ router.get('/', function(request, response, next) {
     database.select().table("tweets").then(displayTweet);
     function displayTweet(query){
       var tweetTable = query.reverse();
-      response.render('index', { tweetTable: tweetTable, title: 'Welcome to the tweetMachine!', username: username });
+      response.render('index', { tweetTable: tweetTable, title: 'Porch Life', username: username });
     }
 
   } else {
     username = null;
-    response.render('index', { title: 'Welcome to the tweetMachine!', username: username });
+    response.render('index', { title: 'Porch Life', username: username });
   }
 });
 
-
+/* ===============================================================
+New user registration
+========================*/
 router.post('/register', function(request, response) {
 
   var username = request.body.username,
@@ -30,9 +37,7 @@ router.post('/register', function(request, response) {
       password_confirm = request.body.password_confirm,
       database = app.get('database');
       
-  /* ===============================================================
-  Function to check if the username already exists
-  ========================*/
+
   function checkIfDuplicate (query) {
 
   if (query[0] !== undefined) {
@@ -62,8 +67,8 @@ router.post('/register', function(request, response) {
   database('users').select('username').where({'username': username}).then(checkIfDuplicate);
 
 });
-   /*=======================
-   =================================================================*/
+/*=======================
+=================================================================*/
 
 
 
@@ -76,21 +81,25 @@ router.post('/tweet', function(request, response){
     var tweetBody = request.body.tweetBody;
     var database = app.get('database');
     var currentDate = new Date(); 
-    var dateTime = "Tweet time: " + currentDate.getDate() + "/" + (currentDate.getMonth()+1)  + "/" + currentDate.getFullYear() + " @ " + currentDate.getHours() + ":" + currentDate.getMinutes() + ":" + currentDate.getSeconds();
+    var dateTime = "Posted at: " + currentDate.getDate() + "/" + (currentDate.getMonth()+1)  + "/" + currentDate.getFullYear() + " @ " + currentDate.getHours() + ":" + currentDate.getMinutes() + ":" + currentDate.getSeconds();
 
     database('tweets').insert(({'username': username, "tweetBody": tweetBody, "tweetTime": dateTime})).then();
 
       response.redirect('/');   
       
 });
- 
-
-  
-/*************************************************
-
-**************************************************/
 
 
+//LOGOUT FUNCTIONALITY
+router.post('/logout', function (request, response) {
+  response.clearCookie('username');
+  response.redirect('/');
+});
+
+
+/***************************************************
+Login functionality
+***************************************************/
 router.post('/login', function(request, response) {
 
   var username = request.body.username,

@@ -1,25 +1,30 @@
 extends layout
 
 block content
+  .nav
+    form(method='post' action='/logout')
+      input(type='submit' value='Sign out' id='logout')
+      br
+      br
   div.header
     h1= title
   if error
-    h3= error
+    h3(class='error')= error
   if username
     div.newtweet
       h3(class='user') Welcome #{username}!
       form(method='post' action='/tweet')
         label What's on your mind?       
-          input(id='tweetbody' type='text' name='tweetBody' placeholder='Your mouth sayeth...')
-          input(type='submit' value='Loudmouf' id='bigButton')
+          input(id='tweetbody' type='text' name='tweetBody' placeholder='Type your post here...')
+          input(type='submit' value='Post my comment' id='bigButton')
     div
       h1(class="title") What people are saying...
       each tweet in tweetTable
         p(class="tweetSlot")=tweet.username + ' - ' + tweet.tweetBody + ' - ' + tweet.tweetTime
 
   else
-    p You are not logged in. Would you like to be?
-    div
+    p(class='title') You are not logged in. Would you like to be?
+    #id.newtweet
       form(method="post" action="/register")
         h2 Register a new account
         div
@@ -33,9 +38,9 @@ block content
             input(type="password" name="password_confirm")
         div
           input(type="submit" value="Pleased to meet you!")
-    div
+    #login.newtweet
       form(method="post" action="/login")
-        h2 Log into an existing account
+        h2 Sign into an existing account
         div
           label Username:
             input(type="text" name="username" placeholder="username")

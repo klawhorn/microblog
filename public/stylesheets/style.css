@@ -1,6 +1,9 @@
 html {
-	background-image: url('http://wallpapers111.com/wp-content/uploads/2015/05/Pretty-Backgrounds-HD-5.jpg') ;
+	background-image: url('http://wallpapers111.com/wp-content/uploads/2015/05/Pretty-Backgrounds-HD-5.jpg');
 	background-size: cover;
+	min-height: 100%;
+	min-width: 100%;
+	background-repeat: no-repeat;
 }
 
 body {
@@ -15,14 +18,20 @@ a {
   color: #00B7FF;
 }
 
+#logout {
+	display: block;
+	float: right;
+	margin: 0;
+}
+
 #tweetbody {
 	width: 50%;
 	height: 20px;
 }
 
 #bigButton {
-	width: 100px;
-	height: 20px;
+	width: 30%;
+	height: 10%;
 }
 
 .header {
@@ -30,8 +39,13 @@ a {
 	border: 5px solid black;
 	border-radius: 25px;
 	text-align: center;
-	margin-bottom: 25px;
-	opacity: 0.5;
+	margin: 25px 0px;
+	opacity: 0.75;
+	font-size: 1.5em;
+	text-decoration: underline;
+	webkit-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+	moz-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+	box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
 }
 
 .tweetSlot {
@@ -40,8 +54,15 @@ a {
 	background-color: #FFFFCC;
 	padding: 1%;
 	border-radius: 25px;
-	opacity: 0.5;
+	opacity: 0.75;
+	webkit-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+	moz-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+	box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
 
+}
+
+.error {
+	text-align: center;
 }
 
 .newtweet {
@@ -49,12 +70,19 @@ a {
 	border-radius: 25px;
 	background-color: #FFFFCC;
 	padding: 1% .5% 1%;
+	margin-bottom: 2%;
 	text-align: center;
-	opacity: 0.5;
+	opacity: 0.75;
+	webkit-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+	moz-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+	box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
 }
 
 .title {
 	text-align: center;
+	box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+	border-radius: 25px;
+	padding: 10px;
 }
 
 .user {
