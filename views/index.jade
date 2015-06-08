@@ -16,6 +16,8 @@ block content
       form(method='post' action='/tweet')
         label What's on your mind?       
           input(id='tweetbody' type='text' name='tweetBody' placeholder='Type your post here...')
+          br
+          br
           input(type='submit' value='Post my comment' id='bigButton')
     div
       h1(class="title") What people are saying...
@@ -30,12 +32,15 @@ block content
         div
           label Username:
             input(type="text" name="username" placeholder="username")
+            br
         div
           label Password:
             input(type="password" name="password")
+            br
         div
           label Confirm Password:
             input(type="password" name="password_confirm")
+            br
         div
           input(type="submit" value="Pleased to meet you!")
     #login.newtweet
@@ -44,8 +49,10 @@ block content
         div
           label Username:
             input(type="text" name="username" placeholder="username")
+            br
         div
           label Password:
             input(type="password" name="password")
+            br
         div
           input(type="submit" value="Let me in!")

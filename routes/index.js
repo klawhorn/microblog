@@ -2,7 +2,9 @@ var express = require('express');
 var router = express.Router();
 var app = require('../app');
 var redis = require('redis');
-var client = redis.createClient();
+var cache = redis.createClient();
+
+cache.del("tweets");
 
 
 /***************************************************
@@ -15,11 +17,39 @@ router.get('/', function(request, response, next) {
   if (request.cookies.username) {
     username = request.cookies.username;
     username = username.toUpperCase();
-    database.select().table("tweets").then(displayTweet);
-    function displayTweet(query){
-      var tweetTable = query.reverse();
-      response.render('index', { tweetTable: tweetTable, title: 'Porch Life', username: username });
-    }
+    
+    cache.lrange("tweets", 0, -1, function(err, results) {
+      if (results.length <1){
+        database.select().table("tweets").then(function(results) {
+          
+          var tweetTable = results.reverse();
+          console.log("this");
+
+          tweetTable.forEach(function(it) {
+            cache.rpush("tweets", JSON.stringify(it));
+          })
+
+          response.render('index', { tweetTable: tweetTable, title: 'Porch Life', username: username });
+        })
+      }
+      else {
+        // console.log("that");
+        // console.log(results);
+        results=results.map(function(it){
+          return JSON.parse(it);
+        });
+        // console.log(results);
+        response.render('index', { tweetTable: results, title: 'Porch Life', username: username });
+      
+      }
+        
+    })
+    
+    // database.select().table("tweets").then(displayTweet);
+    // function displayTweet(query){
+    //   var tweetTable = query.reverse();
+    //   response.render('index', { tweetTable: tweetTable, title: 'Porch Life', username: username });
+    // }
 
   } else {
     username = null;
@@ -85,12 +115,15 @@ router.post('/tweet', function(request, response){
 
     database('tweets').insert(({'username': username, "tweetBody": tweetBody, "tweetTime": dateTime})).then();
 
+    cache.del("tweets");
       response.redirect('/');   
       
 });
 
 
-//LOGOUT FUNCTIONALITY
+/************************************************
+LOGOUT FUNCTIONALITY
+*************************************************/
 router.post('/logout', function (request, response) {
   response.clearCookie('username');
   response.redirect('/');

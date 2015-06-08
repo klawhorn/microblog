@@ -32,6 +32,9 @@ a {
 #bigButton {
 	width: 30%;
 	height: 10%;
+	display: inline-block;
+	margin-top: 2% 35%;
+
 }
 
 .header {
