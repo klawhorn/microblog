@@ -3,6 +3,8 @@ var router = express.Router();
 var app = require('../app');
 var redis = require('redis');
 var cache = redis.createClient();
+var nodemailer = require('nodemailer');
+var uuid = require('node-uuid');
 
 cache.del("tweets");
 
@@ -23,7 +25,7 @@ router.get('/', function(request, response, next) {
         database.select().table("tweets").then(function(results) {
           
           var tweetTable = results.reverse();
-          console.log("this");
+          
 
           tweetTable.forEach(function(it) {
             cache.rpush("tweets", JSON.stringify(it));
@@ -32,24 +34,17 @@ router.get('/', function(request, response, next) {
           response.render('index', { tweetTable: tweetTable, title: 'Porch Life', username: username });
         })
       }
+
       else {
-        // console.log("that");
-        // console.log(results);
         results=results.map(function(it){
           return JSON.parse(it);
         });
-        // console.log(results);
+
         response.render('index', { tweetTable: results, title: 'Porch Life', username: username });
-      
       }
         
     })
     
-    // database.select().table("tweets").then(displayTweet);
-    // function displayTweet(query){
-    //   var tweetTable = query.reverse();
-    //   response.render('index', { tweetTable: tweetTable, title: 'Porch Life', username: username });
-    // }
 
   } else {
     username = null;
@@ -66,10 +61,12 @@ router.post('/register', function(request, response) {
       password = request.body.password,
       password_confirm = request.body.password_confirm,
       database = app.get('database');
-      
+    console.log(username);
+
+  database('users').select('username').where({'username': username}).then(checkIfDuplicate);
 
   function checkIfDuplicate (query) {
-
+    console.log(query);
   if (query[0] !== undefined) {
   
     response.render('index', {
@@ -87,15 +84,51 @@ router.post('/register', function(request, response) {
     });
 
   } else {
-    
-    response.cookie('username', username);
-    database('users').insert(({'username': username, 'password': password})).then();
-      response.redirect('/');
-    };
-  }
-  
-  database('users').select('username').where({'username': username}).then(checkIfDuplicate);
 
+    var email = request.body.email;
+    var nonce = uuid.v4();
+
+    var mailOptions = {
+        from: 'Porch Life',
+        to: email,
+        subject: 'verify your email address with this link',
+        text: "Thank you for signing up with Porch Life! Please click the following link to activate your account!",
+        html: "<a href='http://localhost:4000/verify_email/" + nonce + "'>Click here!</a>"
+    }
+
+    var transporter = nodemailer.createTransport({
+      service: 'Gmail',
+      auth: {
+          user: 'smellyjunkmailrules@gmail.com',
+          pass: 'klaw9665'    
+      } 
+    }) 
+    console.log(transporter);
+
+    transporter.sendMail(mailOptions, function(error, info){
+        if (error) {
+            console.log(error);
+        } else {
+            console.log('Message sent: ' + info.response);
+            response.render('index', {
+              title: 'Authorize Me!',
+              user: null,
+              error: "please check your email"
+            });
+        }
+    }); 
+  }
+  //   //will go somewhere else 
+  //   response.cookie('username', username);
+  //   database('users').insert(({'username': username, 'password': password})).then();
+
+  //     response.redirect('/');
+  //   };
+  // }
+  
+  
+
+  }
 });
 /*=======================
 =================================================================*/
@@ -148,6 +181,7 @@ router.post('/login', function(request, response) {
           error: "No such user"
         });
     } else {
+
       var user = records[0];
       if (user.password === password) {
 

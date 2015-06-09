@@ -73,7 +73,7 @@ a {
 	border-radius: 25px;
 	background-color: #AEA39E;
 	padding: 1% .5% 1%;
-	margin-bottom: 2%;
+	margin-bottom: 3%;
 	text-align: center;
 	opacity: .85;
 	webkit-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
@@ -88,6 +88,7 @@ a {
 	border-radius: 25px;
 	padding: 10px;
 	background-color: #AEA39E;
+	opacity: .85;
 }
 
 .user {
