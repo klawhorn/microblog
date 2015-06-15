@@ -8,33 +8,47 @@ var uuid = require('node-uuid');
 
 cache.del("tweets");
 
+/*
+1. INDEX PAGE
+2. NEW USER REGISTRATION-- WORKING ON CACHING USERNAME THROUGH VERIFICATION PROCESS
+3. VERIFIED PAGE --WORKING ON PULLING FROM CACHE AND PUTTING INTO THE DB
+4. POST FOR SAVING TWEETS
+5. LOGOUT FUNCTIONALITY
+6. LOGIN FUNCTIONALITY
+*/
 
 /***************************************************
-Index page 
+1. Index page 
 ***************************************************/
 router.get('/', function(request, response, next) {
   var username;
   var database = app.get('database');
 
+  //if the user has cookies saved, render the homepage
   if (request.cookies.username) {
     username = request.cookies.username;
     username = username.toUpperCase();
     
+    //check if the cache of tweets exists
     cache.lrange("tweets", 0, -1, function(err, results) {
       if (results.length <1){
+
+        //if the cache doesn't exists, pull the tweets from the db and fill the cache
         database.select().table("tweets").then(function(results) {
           
           var tweetTable = results.reverse();
           
-
+          //push into the redis cache as JSON
           tweetTable.forEach(function(it) {
             cache.rpush("tweets", JSON.stringify(it));
           })
 
+          //render the index page with tweets from the db
           response.render('index', { tweetTable: tweetTable, title: 'Porch Life', username: username });
         })
       }
 
+      //if the cache exists, render the page with the cached tweets
       else {
         results=results.map(function(it){
           return JSON.parse(it);
@@ -45,7 +59,7 @@ router.get('/', function(request, response, next) {
         
     })
     
-
+  // if the user does not have cookies, render the index page with username=null
   } else {
     username = null;
     response.render('index', { title: 'Porch Life', username: username });
@@ -53,7 +67,7 @@ router.get('/', function(request, response, next) {
 });
 
 /* ===============================================================
-New user registration
+2. New user registration
 ========================*/
 router.post('/register', function(request, response) {
 
@@ -63,10 +77,12 @@ router.post('/register', function(request, response) {
       database = app.get('database');
     console.log(username);
 
+  //query the db for matching username content
   database('users').select('username').where({'username': username}).then(checkIfDuplicate);
 
   function checkIfDuplicate (query) {
 
+  //checks to see if the username is aready taken (query is the results from the db query)
   if (query[0] !== undefined) {
   
     response.render('index', {
@@ -75,6 +91,7 @@ router.post('/register', function(request, response) {
       error: "Username already exists"
      });
 
+  //checks to see if the passwords match
   } else if (password !== password_confirm) {
 
     response.render('index', {
@@ -83,15 +100,16 @@ router.post('/register', function(request, response) {
       error: "Password didn't match confirmation"
     });
 
+  //if the username doesn't exist, and the passwords match, send email to verify user
   } else {
-
+    //send verification email
     var email = request.body.email;
     var nonce = uuid.v4();
 
     var mailOptions = {
         from: 'Porch Life',
         to: email,
-        subject: 'verify your email address with this link',
+        subject: 'Verify your email address with this link',
         text: "Thank you for signing up with Porch Life! Please click the following link to activate your account!",
         html: "<a href='http://localhost:3000/verify_email/" + nonce + "'>Click here!</a>"
     }
@@ -103,13 +121,16 @@ router.post('/register', function(request, response) {
           pass: 'klaw9665'    
       } 
     }) 
+    //cache the username and password to be pulled and put into the db when the user returns to the verify screen
+    cache.hmset(nonce, 'username', username, 'password', password);
 
-
+    //sends verification email through nodemailer
     transporter.sendMail(mailOptions, function(error, info){
         if (error) {
             console.log(error);
         } else {
             console.log('Message sent: ' + info.response);
+            response.cookie('nonce', nonce);
             response.render('index', {
               title: 'Authorize Me!',
               user: null,
@@ -123,39 +144,34 @@ router.post('/register', function(request, response) {
 /*=======================
 =================================================================*/
 
-
-
-
-
-
 /*************************************************
-verified page after receiving email
+3. verified page after receiving email
 *************************************************/
 router.get('/verify_email/:nonce', function(request, response) {
-  var username = request.cookies.username,
-      password = request.body.password;
+  var nonce = request.cookies.nonce,
+      database = app.get('database'),
+      username,
+      password;
 
-  response.cookie('username', username);
-  database('users').insert(({'username': username, 'password': password}))
-  .then(response.render('verified', {title: 'Your email has been verified!'});
-    );
+  // clear the nonce cookie, set the username cookie.
+  response.clearCookie('nonce');
+
+  //FIND A WAY TO PULL FROM THE CACHE AND PUT INTO THE DB
+  cache.hgetall(nonce, function(err, results) {
+    //where 'nonce': nonce, set username to username and password to password.
+    username = results.username;
+    password = results.password;
+
+    response.cookie('username', username);
+    console.log('working')
+    database('users').insert(({'username': username, 'password': password}))
+    .then(response.redirect('/'));
+  });
+
 });
-  //   //will go somewhere else 
-  //   response.cookie('username', username);
-  //   database('users').insert(({'username': username, 'password': password})).then();
-
-  //     response.redirect('/');
-  //   };
-  // }
-
-//I NEED TO MAKE THE VARIABLES WORK WITH THE CURRENT PAGE SO THAT THEY CAN BE INSERTED INTO THE DATABASE. CACHE? 
-
-
-
-
 
 /*************************************************
-post for saving tweets
+4. post for saving tweets
 **************************************************/
 router.post('/tweet', function(request, response){
     var username = request.cookies.username;
@@ -173,7 +189,7 @@ router.post('/tweet', function(request, response){
 
 
 /************************************************
-LOGOUT FUNCTIONALITY
+5. LOGOUT FUNCTIONALITY
 *************************************************/
 router.post('/logout', function (request, response) {
   response.clearCookie('username');
@@ -182,7 +198,7 @@ router.post('/logout', function (request, response) {
 
 
 /***************************************************
-Login functionality
+6. Login functionality
 ***************************************************/
 router.post('/login', function(request, response) {
 
