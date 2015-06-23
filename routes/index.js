@@ -88,7 +88,7 @@ router.post('/register', function(request, response) {
     response.render('index', {
       title: 'Authorize Me!',
       user: null,
-      error: "Username already exists"
+      error: "Sorry, that username is taken. BE MORE ORIGINAL."
      });
 
   //checks to see if the passwords match
@@ -97,7 +97,7 @@ router.post('/register', function(request, response) {
     response.render('index', {
       title: 'Authorize Me!',
       user: null,
-      error: "Password didn't match confirmation"
+      error: "Passwords didn't match, dude."
     });
 
   //if the username doesn't exist, and the passwords match, send email to verify user
@@ -111,7 +111,7 @@ router.post('/register', function(request, response) {
         to: email,
         subject: 'Verify your email address with this link',
         text: "Thank you for signing up with Porch Life! Please click the following link to activate your account!",
-        html: "<a href='http://localhost:3000/verify_email/" + nonce + "'>Click here!</a>"
+        html: "<a href='http://localhost:3000/verify_email/" + nonce + "'>Thank you for signing up with Porch Life! Please click me activate your account!</a>"
     }
 
     var transporter = nodemailer.createTransport({
@@ -134,7 +134,7 @@ router.post('/register', function(request, response) {
             response.render('index', {
               title: 'Authorize Me!',
               user: null,
-              error: "please check your email"
+              error: "Please check your email and click the link to verify your account!"
             });
         }
     }); 
