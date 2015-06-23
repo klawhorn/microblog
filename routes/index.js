@@ -28,39 +28,20 @@ router.get('/', function(request, response, next) {
   if (request.cookies.username) {
     username = request.cookies.username;
     username = username.toUpperCase();
-    
-    //check if the cache of tweets exists
-    cache.lrange("tweets", 0, -1, function(err, results) {
-      if (results.length <1){
 
-        //if the cache doesn't exists, pull the tweets from the db and fill the cache
-        database.select().table("tweets").then(function(results) {
-          
-          var tweetTable = results.reverse();
-          
-          //push into the redis cache as JSON
-          tweetTable.forEach(function(it) {
-            cache.rpush("tweets", JSON.stringify(it));
-          })
-
-          //render the index page with tweets from the db
-          response.render('index', { tweetTable: tweetTable, title: 'Porch Life', username: username });
-        })
-      }
-
-      //if the cache exists, render the page with the cached tweets
-      else {
-        results=results.map(function(it){
-          return JSON.parse(it);
-        });
-
-        response.render('index', { tweetTable: results, title: 'Porch Life', username: username });
-      }
-        
+    //find the tweets from the tweets db and fill to the index.jade template
+    database.select().table("tweets").then(function(results) {
+      
+      var tweetTable = results.reverse();
+      
+      //render the index page with tweets from the db
+      response.render('index', { tweetTable: tweetTable, title: 'Porch Life', 
+        username: username });
     })
+  }
     
   // if the user does not have cookies, render the index page with username=null
-  } else {
+    else {
     username = null;
     response.render('index', { title: 'Porch Life', username: username });
   }
@@ -98,6 +79,15 @@ router.post('/register', function(request, response) {
       title: 'Authorize Me!',
       user: null,
       error: "Passwords didn't match, dude."
+    });
+
+  //if the username doesn't exist, and the passwords match, send email to verify user
+  } else if (password.length<5) {
+
+    response.render('index', {
+      title: 'Authorize Me!',
+      user: null,
+      error: "Your password must be a minimum of 5 characters. Be better."
     });
 
   //if the username doesn't exist, and the passwords match, send email to verify user
@@ -181,9 +171,8 @@ router.post('/tweet', function(request, response){
     var dateTime = "Posted at: " + currentDate.getDate() + "/" + (currentDate.getMonth()+1)  + "/" + currentDate.getFullYear() + " @ " + currentDate.getHours() + ":" + currentDate.getMinutes() + ":" + currentDate.getSeconds();
 
     database('tweets').insert(({'username': username, "tweetBody": tweetBody, "tweetTime": dateTime})).then();
-
-    cache.del("tweets");
-      response.redirect('/');   
+    
+    response.redirect('/');   
       
 });
 
