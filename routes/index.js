@@ -82,6 +82,15 @@ router.post('/register', function(request, response) {
     });
 
   //if the username doesn't exist, and the passwords match, send email to verify user
+  } else if (password.length<5) {
+
+    response.render('index', {
+      title: 'Authorize Me!',
+      user: null,
+      error: "Your password must be a minimum of 5 characters. Be better."
+    });
+
+  //if the username doesn't exist, and the passwords match, send email to verify user
   } else {
     //send verification email
     var email = request.body.email;
