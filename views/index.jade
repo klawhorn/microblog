@@ -10,6 +10,8 @@ block content
     h1= title
   if error
     h3(class='error')= error
+  if pending
+    h3(class='pending')= pending
   if username
     div.newtweet
       h3(class='user') Welcome #{username}!
