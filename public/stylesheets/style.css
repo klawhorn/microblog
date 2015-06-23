@@ -65,7 +65,16 @@ a {
 }
 
 .error {
+	background-color: #FF6666;
 	text-align: center;
+	border: 3px black solid;
+	border-radius: 25px;
+	padding: 1% .5% 1%;
+	margin-bottom: 3%;
+	opacity: .85;
+	webkit-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+	moz-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+	box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
 }
 
 .newtweet {
