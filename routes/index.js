@@ -124,7 +124,7 @@ router.post('/register', function(request, response) {
             response.render('index', {
               title: 'Authorize Me!',
               user: null,
-              error: "Please check your email and click the link to verify your account!"
+              pending: "Please check your email and click the link to verify your account!"
             });
         }
     }); 
