@@ -55,7 +55,7 @@ router.post('/register', function(request, response) {
       password = request.body.password,
       password_confirm = request.body.password_confirm,
       database = app.get('database');
-    console.log(username);
+    // console.log(username);
 
   //query the db for matching username content
   database('users').select('username').where({'username': username}).then(checkIfDuplicate);
@@ -119,6 +119,7 @@ router.post('/register', function(request, response) {
         stored = {"username":raw.username, "salt":salt, "hash":hash};
         //cache the username and password after it is encrypted with PWD to be pulled and put into the db when the user returns to the verify screen
         cache.hmset(nonce, {"stored": stored});
+        console.log('+++++++++++++++LOOK++++++'+nonce);
         console.log(stored);
       }) 
     }
@@ -160,8 +161,10 @@ router.get('/verify_email/:nonce', function(request, response) {
 
   //FIND A WAY TO PULL FROM THE CACHE AND PUT INTO THE DB
   cache.hgetall(nonce, function(err, results) {
-    console.log('++++++LOOK++++++'+results);
+    console.log('++++++LOOK++++++'+nonce);
+    console.log('++++++LOOK++++++'+results.stored);
     //where 'nonce': nonce, set username to username and password to password.
+    ////////WHERE WE ARE FIGURING IT OUT, THE CONSOLE LOG RESULTS.STORED CAME BACK AS OBJECT OBJECT, NEXT WE TEST RESULTS.STORED.USERNAME
     username = results.stored.username;
     salt = results.stored.salt;
     hash = results.stored.hash;
