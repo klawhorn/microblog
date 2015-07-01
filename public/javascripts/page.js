@@ -1,5 +1,5 @@
 $("document").ready(function () {
-    $(".user").hide();
-    $(".user").slideDown(2000);
-
+	var domElement = $(".tweetSlot").get(0);
+    $(domElement).hide();
+    $(domElement).slideDown(2000);
 });
