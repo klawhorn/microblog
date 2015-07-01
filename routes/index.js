@@ -6,8 +6,6 @@ var cache = redis.createClient();
 var nodemailer = require('nodemailer');
 var uuid = require('node-uuid');
 
-cache.del("tweets");
-
 /*
 1. INDEX PAGE
 2. NEW USER REGISTRATION-- WORKING ON CACHING USERNAME THROUGH VERIFICATION PROCESS
