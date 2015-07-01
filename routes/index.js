@@ -5,8 +5,7 @@ var redis = require('redis');
 var cache = redis.createClient();
 var nodemailer = require('nodemailer');
 var uuid = require('node-uuid');
-
-cache.del("tweets");
+var pwd = require('pwd');
 
 /*
 1. INDEX PAGE
@@ -111,8 +110,20 @@ router.post('/register', function(request, response) {
           pass: 'klaw9665'    
       } 
     }) 
-    //cache the username and password to be pulled and put into the db when the user returns to the verify screen
-    cache.hmset(nonce, 'username', username, 'password', password);
+
+    var raw = {"username": username, "password": password};
+    var stored = {"username": username, "salt": '', "hash": ''};
+
+    function register(raw) {
+      pwd.hash(raw.password, function(err, salt, hash){
+        stored = {"username":raw.username, "salt":salt, "hash":hash};
+        //cache the username and password after it is encrypted with PWD to be pulled and put into the db when the user returns to the verify screen
+        cache.hmset(nonce, "stored": stored);
+        console.log(stored);
+      }) 
+    }
+
+    register(raw);
 
     //sends verification email through nodemailer
     transporter.sendMail(mailOptions, function(error, info){
@@ -125,7 +136,7 @@ router.post('/register', function(request, response) {
               title: 'Authorize Me!',
               user: null,
               pending: "Please check your email and click the link to verify your account!"
-            });
+          });
         }
     }); 
   }
@@ -139,9 +150,10 @@ router.post('/register', function(request, response) {
 *************************************************/
 router.get('/verify_email/:nonce', function(request, response) {
   var nonce = request.cookies.nonce,
-      database = app.get('database'),
-      username,
-      password;
+      database = app.get('database');
+  var username;
+  var salt;
+  var hash;
 
   // clear the nonce cookie, set the username cookie.
   response.clearCookie('nonce');
@@ -149,13 +161,16 @@ router.get('/verify_email/:nonce', function(request, response) {
   //FIND A WAY TO PULL FROM THE CACHE AND PUT INTO THE DB
   cache.hgetall(nonce, function(err, results) {
     //where 'nonce': nonce, set username to username and password to password.
-    username = results.username;
-    password = results.password;
+    username = results.stored.username;
+    salt = results.stored.salt;
+    hash = resluts.stored.hash;
+
 
     response.cookie('username', username);
-    console.log('working')
-    database('users').insert(({'username': username, 'password': password}))
+
+    database('users').insert(({'username': username, 'salt': salt, 'hash': hash}))
     .then(response.redirect('/'));
+
   });
 
 });
@@ -191,13 +206,12 @@ router.post('/logout', function (request, response) {
 ***************************************************/
 router.post('/login', function(request, response) {
 
-  var username = request.body.username,
-      password = request.body.password,
-      database = app.get('database');
+  var attempt = {username:request.body.username, password:request.body.password}; 
+  var database = app.get('database');
 
-  database('users').where({'username': username}).then(function(records) {
+  database('users').where({'username': attempt.username}).then(function(results) {
 
-    if (records.length === 0) {
+    if (results.length === 0) {
         response.render('index', {
           title: 'User not found!',
           user: null,
@@ -205,11 +219,21 @@ router.post('/login', function(request, response) {
         });
     } else {
 
-      var user = records[0];
-      if (user.password === password) {
+      var user = results[0];
+      
+      function authenticate(attempt) {
+        pwd.hash(attempt.password, user.salt, function(err, hash){
 
-        response.cookie('username', username);
-        response.redirect('/');
+          if (hash===user.hash) {
+            response.cookie('username', attempt.username);
+            response.redirect('/');
+            }
+
+        })
+      }
+
+      authenticate(attempt); 
+
       } else {
 
         response.render('index', {
