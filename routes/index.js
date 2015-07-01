@@ -5,6 +5,7 @@ var redis = require('redis');
 var cache = redis.createClient();
 var nodemailer = require('nodemailer');
 var uuid = require('node-uuid');
+var pwd = require('pwd');
 
 cache.del("tweets");
 
@@ -111,8 +112,32 @@ router.post('/register', function(request, response) {
           pass: 'klaw9665'    
       } 
     }) 
+
+
+
     //cache the username and password to be pulled and put into the db when the user returns to the verify screen
+
+
     cache.hmset(nonce, 'username', username, 'password', password);
+
+    var raw = {"username": username, "password": password};
+    var stored = {"username": username, "salt": '', "hash": ''};
+
+    function register(raw) {
+      pwd.hash(raw.password, function(err, salt, hash){
+        stored = {"username":raw.username, "salt":salt, "hash":hash};
+        console.log(stored);
+      })
+    }
+
+    function authenticate(attempt) {
+      pwd.hash(attempt.password, stored.salt, function(err, hash){
+        if (hash===stored.hash)
+          console.log('success!');
+      })
+    }
+
+
 
     //sends verification email through nodemailer
     transporter.sendMail(mailOptions, function(error, info){
@@ -191,8 +216,9 @@ router.post('/logout', function (request, response) {
 ***************************************************/
 router.post('/login', function(request, response) {
 
-  var username = request.body.username,
-      password = request.body.password,
+  var attempt = {username:request.body.username, password:request.body.password};
+  // var username = request.body.username,
+  //     password = request.body.password,
       database = app.get('database');
 
   database('users').where({'username': username}).then(function(records) {
