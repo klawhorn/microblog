@@ -217,7 +217,7 @@ router.post('/login', function(request, response) {
           user: null,
           error: "No such user"
         });
-    } else {
+    } else if (results[0]) {
 
       var user = results[0];
       
@@ -227,21 +227,22 @@ router.post('/login', function(request, response) {
           if (hash===user.hash) {
             response.cookie('username', attempt.username);
             response.redirect('/');
-            }
+          } else {
+
+          response.render('index', {
+            title: 'Nah, brah.',
+            user: null,
+            error: "Password incorrect"
+          });
+          
+          }   
 
         })
       }
 
       authenticate(attempt); 
 
-      } else {
-
-        response.render('index', {
-          title: 'Nah, brah.',
-          user: null,
-          error: "Password incorrect"
-        });
-      }
+      } 
     }
   });
 });
