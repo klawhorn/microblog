@@ -18,7 +18,7 @@ var pwd = require('pwd');
 //Creating the redis connection through Heroku for deployment
 if (process.env.REDISTOGO_URL) {
     var rtg   = require("url").parse(process.env.REDISTOGO_URL);
-    var redis = require("redis").createClient(rtg.port, rtg.hostname);
+    var cache = require("redis").createClient(rtg.port, rtg.hostname);
 
     redis.auth(rtg.auth.split(":")[1]);
 
