@@ -111,20 +111,23 @@ router.post('/register', function(request, response) {
       } 
     }) 
 
-    var raw = {"username": username, "password": password};
-    var stored = {"username": username, "salt": '', "hash": ''};
+    var salt='';
+    var hash='';
 
-    function register(raw) {
-      pwd.hash(raw.password, function(err, salt, hash){
-        stored = {"username":raw.username, "salt":salt, "hash":hash};
+
+    function register() {
+      pwd.hash(password, function(err, salty, hashy){
+        salt= salty;
+        console.log('+++++++++LOOK+++++++ at the salt'+salt);
+        hash= hashy;
+        console.log('+++++++++LOOK+++++++ at the hash'+hash);
         //cache the username and password after it is encrypted with PWD to be pulled and put into the db when the user returns to the verify screen
-        cache.hmset(nonce, {"stored": stored});
-        console.log('+++++++++++++++LOOK++++++'+nonce);
-        console.log(stored);
+        cache.hmset(nonce, "username", username, "salt", salt, "hash", hash);
+        // console.log(stored);
       }) 
     }
 
-    register(raw);
+    register();
 
     //sends verification email through nodemailer
     transporter.sendMail(mailOptions, function(error, info){
@@ -152,22 +155,22 @@ router.post('/register', function(request, response) {
 router.get('/verify_email/:nonce', function(request, response) {
   var nonce = request.cookies.nonce,
       database = app.get('database');
-  var username;
-  var salt;
-  var hash;
+  var username='';
+  var salt='';
+  var hash='';
 
   // clear the nonce cookie, set the username cookie.
   response.clearCookie('nonce');
 
   //FIND A WAY TO PULL FROM THE CACHE AND PUT INTO THE DB
   cache.hgetall(nonce, function(err, results) {
-    console.log('++++++LOOK++++++'+nonce);
-    console.log('++++++LOOK++++++'+results.stored);
+    console.log('++++++LOOK++++++NONCE '+nonce);
+    console.log('++++++LOOK++++++ RESULTS.USERNAME '+results.username);
     //where 'nonce': nonce, set username to username and password to password.
     ////////WHERE WE ARE FIGURING IT OUT, THE CONSOLE LOG RESULTS.STORED CAME BACK AS OBJECT OBJECT, NEXT WE TEST RESULTS.STORED.USERNAME
-    username = results.stored.username;
-    salt = results.stored.salt;
-    hash = results.stored.hash;
+    username = results.username;
+    salt = results.salt;
+    hash = results.hash;
 
 
     response.cookie('username', username);
