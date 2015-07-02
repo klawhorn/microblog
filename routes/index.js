@@ -55,7 +55,7 @@ router.post('/register', function(request, response) {
       password = request.body.password,
       password_confirm = request.body.password_confirm,
       database = app.get('database');
-    console.log(username);
+    // console.log(username);
 
   //query the db for matching username content
   database('users').select('username').where({'username': username}).then(checkIfDuplicate);
@@ -111,19 +111,23 @@ router.post('/register', function(request, response) {
       } 
     }) 
 
-    var raw = {"username": username, "password": password};
-    var stored = {"username": username, "salt": '', "hash": ''};
+    var salt='';
+    var hash='';
 
-    function register(raw) {
-      pwd.hash(raw.password, function(err, salt, hash){
-        stored = {"username":raw.username, "salt":salt, "hash":hash};
+
+    function register() {
+      pwd.hash(password, function(err, salty, hashy){
+        salt= salty;
+        console.log('+++++++++LOOK+++++++ at the salt'+salt);
+        hash= hashy;
+        console.log('+++++++++LOOK+++++++ at the hash'+hash);
         //cache the username and password after it is encrypted with PWD to be pulled and put into the db when the user returns to the verify screen
-        cache.hmset(nonce, "stored": stored);
-        console.log(stored);
+        cache.hmset(nonce, "username", username, "salt", salt, "hash", hash);
+        // console.log(stored);
       }) 
     }
 
-    register(raw);
+    register();
 
     //sends verification email through nodemailer
     transporter.sendMail(mailOptions, function(error, info){
@@ -151,19 +155,22 @@ router.post('/register', function(request, response) {
 router.get('/verify_email/:nonce', function(request, response) {
   var nonce = request.cookies.nonce,
       database = app.get('database');
-  var username;
-  var salt;
-  var hash;
+  var username='';
+  var salt='';
+  var hash='';
 
   // clear the nonce cookie, set the username cookie.
   response.clearCookie('nonce');
 
   //FIND A WAY TO PULL FROM THE CACHE AND PUT INTO THE DB
   cache.hgetall(nonce, function(err, results) {
+    console.log('++++++LOOK++++++NONCE '+nonce);
+    console.log('++++++LOOK++++++ RESULTS.USERNAME '+results.username);
     //where 'nonce': nonce, set username to username and password to password.
-    username = results.stored.username;
-    salt = results.stored.salt;
-    hash = resluts.stored.hash;
+    ////////WHERE WE ARE FIGURING IT OUT, THE CONSOLE LOG RESULTS.STORED CAME BACK AS OBJECT OBJECT, NEXT WE TEST RESULTS.STORED.USERNAME
+    username = results.username;
+    salt = results.salt;
+    hash = results.hash;
 
 
     response.cookie('username', username);
@@ -206,44 +213,45 @@ router.post('/logout', function (request, response) {
 ***************************************************/
 router.post('/login', function(request, response) {
 
-  var attempt = {username:request.body.username, password:request.body.password}; 
-  var database = app.get('database');
+ var attempt = {username:request.body.username, password:request.body.password}; 
+ var database = app.get('database');
 
-  database('users').where({'username': attempt.username}).then(function(results) {
+ database('users').where({'username': attempt.username}).then(function(results) {
 
-    if (results.length === 0) {
-        response.render('index', {
-          title: 'User not found!',
-          user: null,
-          error: "No such user"
-        });
-    } else {
+   if (results.length === 0) {
+       response.render('index', {
+         title: 'User not found!',
+         user: null,
+         error: "No such user"
+       });
+   } else if (results[0]) {
 
-      var user = results[0];
-      
-      function authenticate(attempt) {
-        pwd.hash(attempt.password, user.salt, function(err, hash){
+        var user = results[0];
+         
+        function authenticate(attempt) {
+           pwd.hash(attempt.password, user.salt, function(err, hash){
 
-          if (hash===user.hash) {
-            response.cookie('username', attempt.username);
-            response.redirect('/');
-            }
+             if (hash===user.hash) {
+               response.cookie('username', attempt.username);
+               response.redirect('/');
 
-        })
-      }
+             } else {
 
-      authenticate(attempt); 
+                 response.render('index', {
+                   title: 'Nah, brah.',
+                   user: null,
+                   error: "Password incorrect"
+                 });
+             
+             }  
 
-      } else {
+          })
+        } 
 
-        response.render('index', {
-          title: 'Nah, brah.',
-          user: null,
-          error: "Password incorrect"
-        });
-      }
-    }
+        authenticate(attempt);
+     } 
   });
 });
+
 
 module.exports = router;
