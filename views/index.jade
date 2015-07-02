@@ -13,22 +13,25 @@ block content
   if pending
     h3(class='pending')= pending
   if username
-    div.newtweet
-      h3(class='user') Welcome #{username}!
+    div.regLog
+      h3(id='user') Welcome #{username}!
       form(method='post' action='/tweet')
         label What's on your mind?       
           input(id='tweetbody' type='text' name='tweetBody' placeholder='Type your post here...')
           br
           br
           input(type='submit' value='Post my comment' id='bigButton')
-    div
-      h1(class="title") What people are saying...
+    div.tweetTable
+      h1(class="saying") What people are saying...
       each tweet in tweetTable
-        p(class="tweetSlot")=tweet.username + ' - ' + tweet.tweetBody + ' - ' + tweet.tweetTime
+        div.tweetSlot
+          p(class="tweetUser")=tweet.username + ':'
+          p(class="tweetBody")=tweet.tweetBody
+          p(class="tweetTime")=tweet.tweetTime
 
   else
-    p(class='title') You are not logged in. Would you like to be?
-    #id.newtweet
+    h3(class='title') You are not logged in. Would you like to be?
+    #id.regLog
       form(method="post" action="/register")
         h2 Register a new account
         div
@@ -49,7 +52,7 @@ block content
             br
         div
           input(type="submit" value="Pleased to meet you!")
-    #login.newtweet
+    #login.regLog
       form(method="post" action="/login")
         h2 Sign into an existing account
         div
