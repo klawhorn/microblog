@@ -30,6 +30,7 @@ if (process.env.REDISTOGO_URL) {
 1. Index page 
 ***************************************************/
 router.get('/', function(request, response, next) {
+  console.log('++++!!!!!!!++++ in the /');
   var username;
   var database = app.get('database');
 
