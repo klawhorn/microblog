@@ -17,6 +17,8 @@ var users = require('./routes/users');
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
+////THIS WAS WHILE TESTING TO GET IT LAUNCHED, SETTING THE ENV TO DEVELOPMENT
+app.set('env', "development");
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(__dirname + '/public/favicon.ico'));
@@ -41,6 +43,8 @@ app.use(function(req, res, next) {
 // development error handler
 // will print stacktrace
 if (app.get('env') === 'development') {
+    ///////THIS WAS THE CONSOLE.LOG TEST FOR THE ENV TO DEVELOPMENT CHANGE
+    console.log('We are in dev000000000');
     app.use(function(err, req, res, next) {
         res.status(err.status || 500);
         res.render('error', {
