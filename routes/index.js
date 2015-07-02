@@ -2,7 +2,6 @@ var express = require('express');
 var router = express.Router();
 var app = require('../app');
 var redis = require('redis');
-var cache = redis.createClient();
 var nodemailer = require('nodemailer');
 var uuid = require('node-uuid');
 var pwd = require('pwd');
@@ -15,6 +14,17 @@ var pwd = require('pwd');
 5. LOGOUT FUNCTIONALITY
 6. LOGIN FUNCTIONALITY
 */
+
+//Creating the redis connection through Heroku for deployment
+if (process.env.REDISTOGO_URL) {
+    var rtg   = require("url").parse(process.env.REDISTOGO_URL);
+    var redis = require("redis").createClient(rtg.port, rtg.hostname);
+
+    redis.auth(rtg.auth.split(":")[1]);
+
+} else {
+    var redis = require("redis").createClient();
+}
 
 /***************************************************
 1. Index page 
